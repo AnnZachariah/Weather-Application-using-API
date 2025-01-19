@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Weather App</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Leaflet.js CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+        .header img {
+            width: 50px;
+            height: 50px;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+        .developer {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+        }
+        .popup-btn {
+            position: absolute;
+            right: 20px;
+            top: 40px;
+            font-size: 14px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .popup-btn:hover {
+            background-color: #45a049;
+        }
+
+        /* The Modal (background) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        /* Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Weather App Logo">
+            <h1>Weather App</h1>
+        </div>
+        <div class="developer">
+            Developer: Ann E Zachariah
+        </div>
+        <button class="popup-btn" id="popupBtn">PM Accelerator</button>
+    </div>
+    
+    <!-- Modal for PM Accelerator -->
+    <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Welcome to the Platform</h2>
+            <p>The Product Manager Accelerator Program is designed to support PM professionals through every stage of their careers. From students looking for entry-level jobs to Directors looking to take on a leadership role, our program has helped over hundreds of students fulfill their career aspirations.
+
+                Our Product Manager Accelerator community are ambitious and committed. Through our program they have learnt, honed and developed new PM and leadership skills, giving them a strong foundation for their future endeavors.</p>        </div>
+    </div>
+    
+    <br>
+
+    <form method="POST" action="/" style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" name="city" placeholder="Enter city" required>
+        <button type="submit" class="button">Get Weather</button>
+        <a href="/view" class="button">View Saved Weather Data</a>
+    </form>    
+
+    {% if weather %}
+    <div class="weather-info">
+        <h2>Weather in {{ weather.city }}</h2>
+        <p>Temperature: {{ weather.temperature }}°C</p>
+        <p>Condition: {{ weather.condition }}</p>
+        <p>Local Time: {{ weather.local_time }}</p> 
+    </div>
+
+    <form method="POST" action="/save">
+        <input type="hidden" name="city" value="{{ weather.city }}">
+        <input type="hidden" name="temperature" value="{{ weather.temperature }}">
+        <input type="hidden" name="condition" value="{{ weather.condition }}">
+        <button type="submit">Save Weather</button>
+    </form>
+    
+    {% endif %}
+
+    {% if forecast %}
+    <div class="forecast">
+        <h3>5-Day Forecast</h3>
+        <div class="forecast-days">
+            {% for day in forecast %}
+                <div class="forecast-day">
+                    <p><strong>{{ day.date }}</strong></p> <!-- Includes day name -->
+                    <p>Temp: {{ day.temperature }}°C</p>
+                    <p>Condition: {{ day.condition }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if youtube_videos %}
+    <div class="youtube-videos">
+        <h3>YouTube Videos related to {{ weather.city }}</h3>
+        <div class="video-container">
+            {% for video in youtube_videos[:5] %} <!-- Only show 3 videos -->
+                <div class="video-card">
+                    <img src="https://img.youtube.com/vi/{{ video.url.split('=')[1] }}/hqdefault.jpg" class="video-img" alt="{{ video.title }}">
+                    <div class="video-info">
+                        <h5 class="video-title">{{ video.title }}</h5>
+                        <p class="video-description">{{ video.description[:100] }}...</p>
+                        <a href="{{ video.url }}" target="_blank" class="btn btn-primary">Watch Video</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <br>
+    {% if weather %}
+    <div id="map"></div>
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([{{ weather.lat }}, {{ weather.lon }}], 13);
+
+        // Add OpenStreetMap tiles to the map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add a marker for the city
+        L.marker([{{ weather.lat }}, {{ weather.lon }}]).addTo(map)
+            .bindPopup("<b>{{ weather.city }}</b>")
+            .openPopup();
+    </script>
+    {% endif %}
+
+    <script>
+        // Get the modal
+        var modal = document.getElementById("myModal");
+
+        // Get the button that opens the modal
+        var btn = document.getElementById("popupBtn");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks the button, open the modal
+        btn.onclick = function() {
+            modal.style.display = "block";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

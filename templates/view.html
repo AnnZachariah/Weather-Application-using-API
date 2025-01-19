@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Saved Weather Data</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .export-btn-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Saved Weather Data</h1>
+
+    <!-- Export Button -->
+    <div class="export-btn-container">
+        <a href="/export_csv" class="button">Export to CSV</a>
+    </div>
+
+    <table>
+        <tr>
+            <th>City</th>
+            <th>Temperature</th>
+            <th>Condition</th>
+            <th>Timestamp</th>
+            <th>Actions</th>
+        </tr>
+        {% for row in weather_data %}
+        <tr>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}°C</td>
+            <td>{{ row[3] }}</td>
+            <td>{{ row[4] }}</td>
+            <td>
+                <a href="/edit/{{ row[0] }}">Edit</a>
+                <a href="/delete/{{ row[0] }}" onclick="return confirm('Are you sure?')">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/">Back</a>
+</body>
+</html>
