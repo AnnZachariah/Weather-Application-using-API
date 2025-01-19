@@ -5,6 +5,7 @@ This repository contains a weather app developed as part of the PM Accelerator p
 The application demonstrates integration with weather APIs and includes user-friendly features such as a location search, dynamic weather updates and forecasts, and also a page which helps to add the weather deatils and export it into CSV.
 
 **How to Run the Project**
+
 Ensure you have the following installed on your machine:
 Python 3.8 or higher
 Git
